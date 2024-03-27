@@ -1,13 +1,15 @@
 "use client";
-import { handleGoogleSignout } from "@/actions/user.actions";
-import { useRouter } from "next/navigation";
 
-export default function Homepage() {
-  const router = useRouter();
+import withAuth from "@/hoc/withAuth";
+import { handleGoogleSignout } from "@/actions/user.actions";
+
+const Homepage = () => {
   return (
     <div>
       <h1>Welcome to the homepage!</h1>
-      <button onClick={() => handleGoogleSignout(router)}>Sign out</button>
+      <button onClick={handleGoogleSignout}>Sign out</button>
     </div>
   );
-}
+};
+
+export default withAuth(Homepage);

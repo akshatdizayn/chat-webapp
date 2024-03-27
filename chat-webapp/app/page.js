@@ -1,29 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-
 import { handleGoogleSignIn } from "@/actions/user.actions";
-import { auth } from "@/firebase";
-import { useRouter } from "next/navigation";
+import withAuth from "@/hoc/withAuth";
 
-export default function LoginPage() {
-  const router = useRouter();
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log("User:", user);
-      if (user) {
-        router.push("/homepage");
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
+const LoginPage = () => {
   return (
     <div>
       <h1>Login Page</h1>
-      <button onClick={() => handleGoogleSignIn(router)}>
-        Sign in with Google
-      </button>
+      <button onClick={handleGoogleSignIn}>Sign in with Google</button>
     </div>
   );
-}
+};
+export default withAuth(LoginPage, true);
