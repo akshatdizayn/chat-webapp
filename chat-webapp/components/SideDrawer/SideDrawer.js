@@ -6,6 +6,7 @@ import {
   addDocument,
   fetchCollection,
   getDocument,
+  updateDocument,
 } from "@/actions/chat.actions";
 import { handleGoogleSignout } from "@/actions/user.actions";
 import { timestampConverter } from "@/generalHelpers";
@@ -38,7 +39,8 @@ const SideDrawer = () => {
   };
 
   const addChat = async (chatData) => {
-    return await addDocument("chats", chatData);
+    const docRef = await addDocument("chats", chatData);
+    return docRef;
   };
 
   const handleAdd = async () => {
@@ -69,7 +71,8 @@ const SideDrawer = () => {
       updatedAt: new Date(),
       unreadCount: 0,
     };
-    await addChat(chatData);
+    const chatId = await addChat(chatData);
+    await updateDocument("chats", chatId, { cid: chatId });
 
     const chatDataWithUser = await fetchChats();
     setSingleChatData(chatDataWithUser);

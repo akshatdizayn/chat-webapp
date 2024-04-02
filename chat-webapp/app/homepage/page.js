@@ -1,11 +1,13 @@
 "use client";
 import Image from "next/image";
+
 import withAuth from "@/hoc/withAuth";
 import SideDrawer from "@/components/SideDrawer/SideDrawer";
+
 import chatBackground from "@/public/chatBackground.png";
-import styles from "./Homepage.module.scss";
 import Illustration from "../icons/Illustration";
-// import { handleGoogleSignout } from "@/actions/user.actions";
+
+import styles from "./Homepage.module.scss";
 
 const Homepage = () => {
   return (
@@ -26,7 +28,6 @@ const Homepage = () => {
           </p>
         </div>
       </div>
-      {/* <button onClick={handleGoogleSignout}>Sign out</button> */}
     </div>
   );
 };

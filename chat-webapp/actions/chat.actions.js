@@ -5,6 +5,7 @@ import {
   getDoc,
   getDocs,
   query,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -17,7 +18,10 @@ export const fetchCollection = async (
     ? query(collectionRef, queryCondition)
     : collectionRef;
   const data = await getDocs(q);
-  return data.docs.map((doc) => doc.data());
+  return data.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 };
 
 export const addDocument = async (collectionName, data) => {
@@ -27,6 +31,15 @@ export const addDocument = async (collectionName, data) => {
   } catch (error) {
     console.error("Error adding document: ", error);
     return null;
+  }
+};
+
+export const updateDocument = async (collectionName, docId, data) => {
+  try {
+    const docRef = doc(db, collectionName, docId);
+    await setDoc(docRef, { ...data }, { merge: true });
+  } catch (error) {
+    console.error("Error updating document: ", error);
   }
 };
 
