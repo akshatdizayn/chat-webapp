@@ -5,15 +5,52 @@
   .header {
     z-index: 1;
     width: 100%;
-    height: 80px;
-    background-color: #f0f2f5;
+    height: 65px;
+    background-color: #128c7e;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 12px 20px;
+    .headerDetails {
+      display: flex;
+      align-items: center;
+      .back {
+        width: fit-content;
+        height: fit-content;
+        display: flex;
+        cursor: pointer;
+        margin-right: 10px;
+        svg {
+          width: 20px;
+          height: 20px;
+        }
+      }
+      .text {
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 25px;
+        letter-spacing: -0.025em;
+        color: #f0f2f5;
+        margin-left: 10px;
+      }
+    }
+    .text1 {
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 25px;
+      letter-spacing: -0.025em;
+      color: #f0f2f5;
+      margin-left: 10px;
+    }
+    :last-child {
+      cursor: pointer;
+      font-size: 16px;
+    }
   }
   .container {
+    position: relative;
     width: 100%;
-    height: calc(100% - 80px);
+    height: calc(100% - 65px);
     background-color: #fff;
     overflow-y: auto;
     padding: 0 20px;
@@ -81,6 +118,69 @@
           letter-spacing: -0.025em;
           color: #fff;
         }
+      }
+    }
+    .empty {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      font-weight: 500;
+      font-size: 18px;
+      line-height: 23px;
+      letter-spacing: -0.025em;
+      color: #6b7c85;
+    }
+    .singleUser {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 85px;
+      padding: 17px 0;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f2f5;
+      .avatar {
+        overflow: hidden;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background: gray;
+      }
+      .content {
+        flex: 1;
+        .name {
+          font-weight: 500;
+          font-size: 18px;
+          line-height: 23px;
+          letter-spacing: -0.025em;
+          color: #6b7c85;
+          margin-bottom: 5px;
+        }
+        .bio {
+          font-weight: 400;
+          font-size: 15px;
+          line-height: 19px;
+          letter-spacing: -0.025em;
+          color: #6b7c85;
+        }
+      }
+    }
+    .addButton {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      background-color: #128c7e;
+      border-radius: 16px;
+      cursor: pointer;
+      svg {
+        width: 20px;
+        height: 20px;
       }
     }
   }

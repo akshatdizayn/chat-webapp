@@ -1,6 +1,6 @@
 import { auth, db } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export const handleGoogleSignIn = async () => {
   const provider = new GoogleAuthProvider();
@@ -20,6 +20,7 @@ export const handleGoogleSignIn = async () => {
         photoURL: data.user.photoURL,
         createdAt: data.user.metadata.creationTime,
         lastUpdatedAt: data.user.metadata.lastSignInTime,
+        bio: "Hey there! I am using Chatify.",
       });
     }
   } catch (error) {
