@@ -4,8 +4,10 @@ import {
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   query,
   setDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -47,4 +49,23 @@ export const getDocument = async (collectionName, docId) => {
   const docRef = doc(db, collectionName, docId);
   const docSnap = await getDoc(docRef);
   return docSnap.data();
+};
+
+export const fetchMessages = (chatId, callback) => {
+  const messagesRef = collection(db, "messages");
+  const q = query(messagesRef, where("chatId", "==", chatId));
+
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    let messages = [];
+    querySnapshot.forEach((doc) => {
+      messages.push({
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+    callback(messages);
+  });
+
+  // Return the unsubscribe function
+  return unsubscribe;
 };

@@ -12,7 +12,9 @@ export const formatTime = (dateString) => {
 
 export const timestampConverter = (timestamp) => {
   const date = new Date(
-    timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000
+    typeof timestamp === "object" && "seconds" in timestamp
+      ? timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000
+      : timestamp
   );
 
   // Get hours and minutes

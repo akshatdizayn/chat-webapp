@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 import useAuth from "@/hooks/useAuth";
@@ -9,14 +10,17 @@ import {
   updateDocument,
 } from "@/actions/chat.actions";
 import { handleGoogleSignout } from "@/actions/user.actions";
-import { timestampConverter } from "@/generalHelpers";
+// import { timestampConverter } from "@/generalHelpers";
 
 import Add from "@/app/icons/Add";
 import Back from "@/app/icons/Back";
 
 import styles from "./SideDrawer.module.scss";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/firebase";
+import { timestampConverter } from "@/generalHelpers";
 
-const SideDrawer = () => {
+const SideDrawer = ({ onChatIdChange }) => {
   const [user] = useAuth();
 
   const [users, setUsers] = useState([]);
@@ -55,10 +59,10 @@ const SideDrawer = () => {
   const handleAddAndFetchChatData = async (uid) => {
     if (!uid) return;
 
-    const existingChat = singleChatData.find((chat) =>
+    const isExisting = singleChatData.find((chat) =>
       chat.chatData.members.includes(uid)
     );
-    if (existingChat) {
+    if (isExisting) {
       console.log("Chat already exists");
       setShowUsers(false);
       return;
@@ -76,6 +80,7 @@ const SideDrawer = () => {
 
     const chatDataWithUser = await fetchChats();
     setSingleChatData(chatDataWithUser);
+    onChatIdChange(uid);
     setShowUsers(false);
   };
 
@@ -86,6 +91,17 @@ const SideDrawer = () => {
     };
 
     fetchInitialChatData();
+    const chatRef = collection(db, "chats");
+    const unsubscribe = onSnapshot(chatRef, (snapshot) => {
+      snapshot.docChanges().forEach(async (change) => {
+        if (change.type === "modified") {
+          const chatDataWithUser = await fetchChats();
+          setSingleChatData(chatDataWithUser);
+        }
+      });
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -132,8 +148,12 @@ const SideDrawer = () => {
             </div>
           ))
         ) : singleChatData.length > 0 ? (
-          singleChatData.map((item, index) => (
-            <div key={index} className={styles.singleChat}>
+          singleChatData.map((item) => (
+            <div
+              key={item.uid}
+              className={styles.singleChat}
+              onClick={() => onChatIdChange(item.uid)}
+            >
               <div className={styles.avatar}>
                 <Image
                   src={item.photoURL}
