@@ -7,6 +7,7 @@ import {
   addDocument,
   fetchCollection,
   fetchMessages,
+  getDocument,
   updateDocument,
 } from "@/actions/chat.actions";
 
@@ -15,6 +16,7 @@ import Send from "../../app/icons/Send";
 import styles from "./ChatScreen.module.scss";
 
 const ChatScreen = ({ cid }) => {
+  console.log("cid", cid);
   const [user] = useAuth();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -31,11 +33,7 @@ const ChatScreen = ({ cid }) => {
       return;
     }
 
-    const chats = await fetchCollection(
-      "chats",
-      where("members", "array-contains", cid)
-    );
-    const chat = chats[0];
+    const chat = await getDocument("chats", cid);
     const members = chat.members;
     const receiverId = members.find((id) => id !== user.uid);
 
@@ -47,7 +45,7 @@ const ChatScreen = ({ cid }) => {
       createdAt: new Date(),
     });
 
-    await updateDocument("chats", chat.id, {
+    await updateDocument("chats", chat.cid, {
       lastMessage: message,
       updatedAt: new Date().getTime(),
     });

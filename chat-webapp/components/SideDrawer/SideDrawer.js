@@ -31,7 +31,8 @@ const SideDrawer = ({ onChatIdChange }) => {
   };
 
   const fetchChats = async () => {
-    const allChatData = await fetchCollection("chats");
+    const queryCondition = where("members", "array-contains", user.uid);
+    const allChatData = await fetchCollection("chats", queryCondition);
     return Promise.all(
       allChatData.map(async (chat) => {
         const user = await getDocument("users", chat.members[0]);
@@ -102,7 +103,7 @@ const SideDrawer = ({ onChatIdChange }) => {
 
     return () => unsubscribe();
   }, [user]);
-
+  console.log(singleChatData, "singleChatData");
   return (
     <div className={styles.SideDrawer}>
       <div className={styles.header}>
@@ -151,7 +152,7 @@ const SideDrawer = ({ onChatIdChange }) => {
             <div
               key={item.uid}
               className={styles.singleChat}
-              onClick={() => onChatIdChange(item.uid)}
+              onClick={() => onChatIdChange(item.chatData.cid)}
             >
               <div className={styles.avatar}>
                 <Image
