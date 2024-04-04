@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import classNames from "classnames";
 import { where } from "firebase/firestore";
 
 import useAuth from "@/hooks/useAuth";
@@ -52,17 +53,21 @@ const ChatScreen = ({ cid }) => {
     });
     setMessage("");
   };
+  const sortedMessages = [...messages].sort(
+    (a, b) => a.createdAt - b.createdAt
+  );
 
   return (
     <div className={styles.ChatScreen}>
       <div className={styles.chatBox}>
         <div className={styles.chats}>
-          {messages.map((msg) => (
+          {sortedMessages.map((msg) => (
             <div
               key={msg.id}
-              className={
-                msg.sender === user.uid ? styles.sent : styles.received
-              }
+              className={classNames({
+                [styles.sent]: msg.sender === user.uid,
+                [styles.received]: msg.sender !== user.uid,
+              })}
             >
               <p className={styles.message}>{msg.content}</p>
             </div>

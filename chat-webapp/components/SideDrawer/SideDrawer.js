@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { collection, onSnapshot, where } from "firebase/firestore";
 
 import useAuth from "@/hooks/useAuth";
+import { db } from "@/firebase";
 import {
   addDocument,
   fetchCollection,
@@ -10,15 +11,12 @@ import {
   updateDocument,
 } from "@/actions/chat.actions";
 import { handleGoogleSignout } from "@/actions/user.actions";
-// import { timestampConverter } from "@/generalHelpers";
+import { timestampConverter } from "@/generalHelpers";
 
-import Add from "@/app/icons/Add";
+import NewChat from "@/app/icons/NewChat";
 import Back from "@/app/icons/Back";
 
 import styles from "./SideDrawer.module.scss";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/firebase";
-import { timestampConverter } from "@/generalHelpers";
 
 const SideDrawer = ({ onChatIdChange }) => {
   const [user] = useAuth();
@@ -85,6 +83,7 @@ const SideDrawer = ({ onChatIdChange }) => {
   };
 
   useEffect(() => {
+    if (!user) return;
     const fetchInitialChatData = async () => {
       const chatDataWithUser = await fetchChats();
       setSingleChatData(chatDataWithUser);
@@ -102,7 +101,7 @@ const SideDrawer = ({ onChatIdChange }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   return (
     <div className={styles.SideDrawer}>
@@ -182,7 +181,7 @@ const SideDrawer = ({ onChatIdChange }) => {
           <div className={styles.empty}>No Chats</div>
         )}
         <div className={styles.addButton} onClick={handleAdd}>
-          <Add />
+          <NewChat />
         </div>
       </div>
     </div>
