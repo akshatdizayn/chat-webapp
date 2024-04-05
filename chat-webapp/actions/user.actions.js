@@ -7,7 +7,6 @@ export const handleGoogleSignIn = async () => {
   try {
     const data = await signInWithPopup(auth, provider);
     const { uid } = data.user;
-    console.log(data.user, "data.user");
     const docRef = doc(db, "users", uid);
 
     const docSnap = await getDoc(docRef);

@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import classNames from "classnames";
-import { where } from "firebase/firestore";
 
 import useAuth from "@/hooks/useAuth";
 import {
   addDocument,
-  fetchCollection,
   fetchMessages,
   getDocument,
   updateDocument,
@@ -16,7 +14,6 @@ import Send from "../../app/icons/Send";
 import styles from "./ChatScreen.module.scss";
 
 const ChatScreen = ({ cid }) => {
-  console.log("cid", cid);
   const [user] = useAuth();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -59,17 +56,18 @@ const ChatScreen = ({ cid }) => {
     <div className={styles.ChatScreen}>
       <div className={styles.chatBox}>
         <div className={styles.chats}>
-          {sortedMessages.map((msg) => (
-            <div
-              key={msg.id}
-              className={classNames({
-                [styles.sent]: msg.sender === user.uid,
-                [styles.received]: msg.sender !== user.uid,
-              })}
-            >
-              <p className={styles.message}>{msg.content}</p>
-            </div>
-          ))}
+          {user &&
+            sortedMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={classNames({
+                  [styles.sent]: msg.sender === user.uid,
+                  [styles.received]: msg.sender !== user.uid,
+                })}
+              >
+                <p className={styles.message}>{msg.content}</p>
+              </div>
+            ))}
         </div>
       </div>
       <div className={styles.chatBottom}>

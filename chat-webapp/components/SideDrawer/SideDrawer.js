@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import cx from "classnames";
 import { collection, onSnapshot, where } from "firebase/firestore";
 
 import useAuth from "@/hooks/useAuth";
@@ -32,11 +33,13 @@ const SideDrawer = ({ onChatIdChange }) => {
 
   const fetchChats = async () => {
     const queryCondition = where("members", "array-contains", user.uid);
-    const allChatData = await fetchCollection("chats", queryCondition);
+    let allChatData = await fetchCollection("chats", queryCondition);
+    allChatData = allChatData.sort((a, b) => b.updatedAt - a.updatedAt);
     return Promise.all(
       allChatData.map(async (chat) => {
-        const user = await getDocument("users", chat.members[0]);
-        return { ...user, chatData: chat };
+        const senderId = chat.members.find((id) => id !== user.uid);
+        const senderUser = await getDocument("users", senderId);
+        return { ...senderUser, chatData: chat };
       })
     );
   };
@@ -79,7 +82,7 @@ const SideDrawer = ({ onChatIdChange }) => {
 
     const chatDataWithUser = await fetchChats();
     setSingleChatData(chatDataWithUser);
-    onChatIdChange(uid);
+    onChatIdChange(chatId);
     setShowUsers(false);
   };
 
@@ -103,7 +106,7 @@ const SideDrawer = ({ onChatIdChange }) => {
 
     return () => unsubscribe();
   }, [user]);
-  console.log(singleChatData, "singleChatData");
+
   return (
     <div className={styles.SideDrawer}>
       <div className={styles.header}>
