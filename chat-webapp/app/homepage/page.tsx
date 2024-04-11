@@ -1,40 +1,49 @@
 "use client";
 import { useState, useCallback } from "react";
+import { where } from "firebase/firestore";
 import Image from "next/image";
 
 import withAuth from "@/hoc/withAuth";
+import useAuth from "@/hooks/useAuth";
 import { fetchCollection, getDocument } from "@/actions/chat.actions";
 
 import Back from "../icons/Back";
-import ChatScreen from "../../components/ChatScreen/ChatScreen";
-import SideDrawer from "@/components/SideDrawer/SideDrawer";
 
 import Illustration from "../icons/Illustration";
 
 import styles from "./Homepage.module.scss";
-import { where } from "firebase/firestore";
-import useAuth from "@/hooks/useAuth";
+import { Chat, User } from "@/types/interfaces.types";
+import SideDrawer from "@/components/SideDrawer/SideDrawer";
+import ChatScreen from "@/components/ChatScreen/ChatScreen";
 
-const Homepage = () => {
+const Homepage: React.FC = () => {
   const [user] = useAuth();
-  const [userData, setUserData] = useState(null);
-  const [chatId, setChatId] = useState(null);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [chatId, setChatId] = useState<string | null>(null);
 
   const handleChatId = useCallback(
-    async (id) => {
-      if (user.uid === null) return;
-      const queryCondition = where("cid", "==", id);
-      const data = await fetchCollection("chats", queryCondition);
-      const chat = data[0];
-      const otherUserId = chat.members.find((id) => id !== user.uid);
-      const userData = await getDocument("users", otherUserId);
+    async (id: string) => {
+      if (!user || !user.uid) return;
 
-      setChatId(id);
-      setUserData(userData);
+      let queryCondition: any;
+      if (id) {
+        queryCondition = where("cid", "==", id);
+      } else {
+        queryCondition = where("members", "array-contains", user.uid);
+      }
+
+      const data = await fetchCollection("chats", queryCondition);
+      if (data.length > 0) {
+        const chat: Chat = data[0];
+        const otherUserId = chat.members.find((id) => id !== user.uid);
+        const userData = await getDocument("users", otherUserId);
+
+        setChatId(id);
+        setUserData(userData);
+      }
     },
     [user]
   );
-
   return (
     <div className={styles.Homepage}>
       <div className={styles.sideDrawer}>

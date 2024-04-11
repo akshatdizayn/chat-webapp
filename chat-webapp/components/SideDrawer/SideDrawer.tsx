@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import cx from "classnames";
 import { collection, onSnapshot, where } from "firebase/firestore";
 
 import useAuth from "@/hooks/useAuth";
@@ -18,49 +17,69 @@ import NewChat from "@/app/icons/NewChat";
 import Back from "@/app/icons/Back";
 
 import styles from "./SideDrawer.module.scss";
+import { Chat, User } from "@/types/interfaces.types";
 
-const SideDrawer = ({ onChatIdChange }) => {
+interface Props {
+  onChatIdChange: (id: string) => void;
+}
+
+const SideDrawer: React.FC<Props> = ({ onChatIdChange }) => {
   const [user] = useAuth();
 
-  const [users, setUsers] = useState([]);
-  const [showUsers, setShowUsers] = useState(false);
-  const [singleChatData, setSingleChatData] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [showUsers, setShowUsers] = useState<boolean>(false);
+  const [singleChatData, setSingleChatData] = useState<
+    (User & { chatData: Chat })[]
+  >([]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (): Promise<void> => {
     const userData = await fetchCollection("users");
     setUsers(userData);
   };
 
-  const fetchChats = async () => {
+  const fetchChats = async (): Promise<(User & { chatData: Chat })[]> => {
     const queryCondition = where("members", "array-contains", user.uid);
+
     let allChatData = await fetchCollection("chats", queryCondition);
-    allChatData = allChatData.sort((a, b) => b.updatedAt - a.updatedAt);
-    return Promise.all(
+    allChatData = allChatData.sort(
+      (a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+    );
+
+    const chatDataWithUsers = await Promise.all(
       allChatData.map(async (chat) => {
-        const senderId = chat.members.find((id) => id !== user.uid);
+        const senderId = chat.members.find((id: string) => id !== user?.uid);
         const senderUser = await getDocument("users", senderId);
         return { ...senderUser, chatData: chat };
       })
     );
+    return chatDataWithUsers;
   };
 
-  const addChat = async (chatData) => {
-    const docRef = await addDocument("chats", chatData);
-    return docRef;
+  const addChat = async (chatData: Chat): Promise<string | null> => {
+    try {
+      const docRef = await addDocument("chats", chatData);
+      if (typeof docRef === "string") {
+        return docRef;
+      } else {
+        return docRef.id;
+      }
+    } catch (error) {
+      console.error("Error adding chat:", error);
+      return null;
+    }
   };
 
-  const handleAdd = async () => {
+  const handleAdd = async (): Promise<void> => {
     setShowUsers(true);
     await fetchUsers();
   };
 
-  const handleBack = () => {
+  const handleBack = (): void => {
     setShowUsers(false);
   };
 
-  const handleAddAndFetchChatData = async (uid) => {
-    if (!uid) return;
-
+  const handleAddAndFetchChatData = async (uid: string): Promise<void> => {
+    if (!uid || !user || !user.uid) return;
     const isExisting = singleChatData.find((chat) =>
       chat.chatData.members.includes(uid)
     );
@@ -70,15 +89,20 @@ const SideDrawer = ({ onChatIdChange }) => {
       return;
     }
 
-    const chatData = {
-      createdAt: new Date(),
+    const chatData: Omit<Chat, "cid"> = {
+      createdAt: new Date().toISOString(),
       lastMessage: "Hello there!",
       members: [uid, user.uid],
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
       unreadCount: 0,
     };
     const chatId = await addChat(chatData);
     await updateDocument("chats", chatId, { cid: chatId });
+
+    if (chatId === null) {
+      console.log("Error adding chat");
+      return;
+    }
 
     const chatDataWithUser = await fetchChats();
     setSingleChatData(chatDataWithUser);
@@ -87,15 +111,15 @@ const SideDrawer = ({ onChatIdChange }) => {
   };
 
   useEffect(() => {
-    if (!user) return;
-    const fetchInitialChatData = async () => {
+    if (!user || !user.uid) return;
+    const fetchInitialChatData = async (): Promise<void> => {
       const chatDataWithUser = await fetchChats();
       setSingleChatData(chatDataWithUser);
     };
 
     fetchInitialChatData();
     const chatRef = collection(db, "chats");
-    const unsubscribe = onSnapshot(chatRef, (snapshot) => {
+    const unsubscribe = onSnapshot(chatRef, async (snapshot) => {
       snapshot.docChanges().forEach(async (change) => {
         if (change.type === "modified") {
           const chatDataWithUser = await fetchChats();

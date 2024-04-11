@@ -12,45 +12,64 @@ import {
 import Emoji from "../../app/icons/Emoji";
 import Send from "../../app/icons/Send";
 import styles from "./ChatScreen.module.scss";
+import { Message } from "@/types/interfaces.types";
 
-const ChatScreen = ({ cid }) => {
+interface Props {
+  cid: string | null;
+}
+
+const ChatScreen: React.FC<Props> = ({ cid }) => {
   const [user] = useAuth();
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [receiverId, setReceiverId] = useState<string>("");
 
   useEffect(() => {
+    const fetchData = async (): Promise<void> => {
+      if (cid && user && user.uid) {
+        const chat = await getDocument("chats", cid);
+        const members = chat.members;
+        const receiver = members.find((id: string) => id !== user.uid);
+        setReceiverId(receiver);
+      }
+    };
+    fetchData();
+
     const unsubscribe = fetchMessages(cid, setMessages);
-
     return () => unsubscribe();
-  }, [cid]);
+  }, [cid, user]);
 
-  const sendMessage = async () => {
+  const sendMessage = async (): Promise<void> => {
     if (message.trim() === "") {
       setMessage("");
       return;
     }
+    const chatId = cid;
+    if (chatId && user && user.uid && receiverId) {
+      const newMessage: Message = {
+        chatId,
+        content: message,
+        sender: user.uid,
+        receiver: receiverId,
+        createdAt: new Date().toISOString(),
+      };
 
-    const chat = await getDocument("chats", cid);
-    const members = chat.members;
-    const receiverId = members.find((id) => id !== user.uid);
-
-    await addDocument("messages", {
-      chatId: cid,
-      content: message,
-      sender: user.uid,
-      receiver: receiverId,
-      createdAt: new Date(),
-    });
-
-    await updateDocument("chats", chat.cid, {
-      lastMessage: message,
-      updatedAt: new Date().getTime(),
-    });
-    setMessage("");
+      await addDocument("messages", newMessage);
+      await updateDocument("chats", chatId, {
+        lastMessage: message,
+        updatedAt: new Date().toISOString(),
+      });
+      setMessage("");
+    }
   };
-  const sortedMessages = [...messages].sort(
-    (a, b) => a.createdAt - b.createdAt
-  );
+
+  const sortedMessages = [...messages].sort((a, b) => {
+    const aTimestamp = Date.parse(a.createdAt);
+    const bTimestamp = Date.parse(b.createdAt);
+
+    // Sort in ascending order so that the oldest message comes first
+    return aTimestamp - bTimestamp;
+  });
 
   return (
     <div className={styles.ChatScreen}>
